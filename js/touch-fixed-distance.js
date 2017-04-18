@@ -21,29 +21,45 @@ class TouchDistance {
     this.origin = new Point(normX, normY);
     this.extent = new Point(0.5, 0.5); // the point we will use for touches
 
-    this.active = false;
+    // this.active = false;
     this.touchRadius = 100;
+    this.touchId = undefined;
 
-    document.addEventListener('touchstart', event => {
-      const touch = event.touches[0];
-      const pos = this.getRelativeTouch(touch);
-      this.active = pos.distance(this.originCanvas) <= this.touchRadius;
-      this.extent = this.active ? this.getNormTouch(touch) : this.extent;
+    window.addEventListener('touchstart', event => {
+      if (this.active) { return; }
+
+      const touch = Array.from(event.touches).find(t => {
+        return this.getRelativeTouch(t).distance(this.originCanvas) <= this.touchRadius;
+      });
+      if (touch === undefined) { return; }
+
+      this.touchId = touch.identifier;
+      this.extent = this.getNormTouch(touch);
       this.update();
     });
 
-    document.addEventListener('touchend', event => {
-      this.active = false;
+    window.addEventListener('touchend', event => {
+      const touch = this.getMatchingTouch(event.changedTouches);
+      if (touch === undefined) { return; }
+      this.touchId = undefined;
       this.update();
     });
 
-    document.addEventListener('touchmove', event => {
-      this.extent = this.active ? this.getNormTouch(event.touches[0]) : this.extent;
+    window.addEventListener('touchmove', event => {
+      const touch = this.getMatchingTouch(event.changedTouches);
+      if (touch === undefined) { return; }
+      this.extent = this.getNormTouch(touch);
       this.update();
     });
 
     this.render();
   }
+
+  getMatchingTouch(touches) {
+    return Array.from(touches).find(t => t.identifier === this.touchId);
+  }
+
+  get active() { return this.touchId !== undefined; }
 
   get min() { return this._min; }
   set min(min) {

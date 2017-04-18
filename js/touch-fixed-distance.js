@@ -79,8 +79,14 @@ class TouchDistance {
     return Math.min(this.min + scaled, this.max);
   }
 
+  get valueRender() {
+    const range = this.max - this.min;
+    const precision = Math.pow(10, -Math.ceil(Math.log10(range))) + 1;
+    return this.value.toFixed(precision);
+  }
+
   updateOutput() {
-    if (this.output !== undefined) { this.output.value = this.value.toFixed(1); }
+    if (this.output !== undefined) { this.output.value = this.valueRender; }
   }
 
   appendTo(domElement) {

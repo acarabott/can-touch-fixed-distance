@@ -103,24 +103,31 @@ class TouchDistance {
 
   get dims() { return [this.canvas.width, this.canvas.height]; }
 
-  renderTouch(point, style) {
-    this.ctx.fillStyle = style;
+  // @action: 'stroke' or 'fill'
+  renderArc(normPoint, radius, style, action) {
+    this.ctx.save();
+    this.ctx[{stroke: 'strokeStyle', fill: 'fillStyle'}[action]] = style;
     this.ctx.beginPath();
-    this.ctx.arc(...point.mul(...this.dims), this.touchRadius, 0, Math.PI * 2, false);
-    this.ctx.fill();
+    this.ctx.arc(...normPoint.mul(...this.dims), radius, 0, Math.PI * 2, false);
+    this.ctx[{stroke: 'stroke', fill: 'fill'}[action]]();
+    this.ctx.restore();
   }
 
   render() {
     this.ctx.save();
     this.ctx.clearRect(0, 0, ...this.dims);
 
-    if (this.origin !== undefined) {
-      const opacity = this.active ? 0.8 : 0.5;
-      this.renderTouch(this.origin, `rgba(43, 156, 212, ${opacity})`);
+    // origin
+    {
+      const style = `rgba(43, 156, 212, ${this.active ? 0.8 : 0.5})`;
+      this.ctx.lineWidth = 4;
+      this.renderArc(this.origin, this.touchRadius, style, 'stroke');
     }
 
+    // touch
     if (this.extent !== undefined) {
-      this.renderTouch(this.extent, 'rgba(249, 182, 118, 1.0)');
+      const style = 'rgba(249, 182, 118, 1.0)';
+      this.renderArc(this.extent, this.touchRadius, style, 'fill');
     }
 
     this.ctx.restore();

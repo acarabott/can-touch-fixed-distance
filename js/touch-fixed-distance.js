@@ -121,6 +121,12 @@ class TouchDistance {
 
       const feedbackRadius = this.touchRadius * this.valueNorm;
       this.renderArc(this.origin, feedbackRadius, style, 'fill');
+
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
+      const fontSize = this.touchRadius * 0.5;
+      this.ctx.font = `${fontSize}px Menlo`;
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(this.valueRender, ...this.originCanvas.add(0, fontSize / 4), this.touchRadius * 2);
     }
 
     // max

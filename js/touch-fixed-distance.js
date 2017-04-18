@@ -28,9 +28,7 @@ class TouchDistance {
     this.canvas.addEventListener('touchstart', event => {
       const touch = event.touches[0];
       const pos = this.getRelativeTouch(touch);
-      const originCanvas = this.origin.mul(...this.dims);
-      const distance = pos.distance(originCanvas);
-      this.active = pos.distance(originCanvas) <= this.touchRadius;
+      this.active = pos.distance(this.originCanvas) <= this.touchRadius;
 
       this.extent = this.active ? this.getNormTouch(touch) : undefined;
       this.update();
@@ -49,6 +47,11 @@ class TouchDistance {
 
     this.render();
   }
+
+  getRelativePoint(normPoint) { return normPoint.mul(...this.dims); }
+
+  get originCanvas() { return this.getRelativePoint(this.origin); }
+  get extentCanvas() { return this.extent === undefined ? undefined : this.getRelativePoint(this.extent); }
 
   get min() { return this._min; }
   set min(min) {
@@ -108,7 +111,7 @@ class TouchDistance {
     this.ctx.save();
     this.ctx[{stroke: 'strokeStyle', fill: 'fillStyle'}[action]] = style;
     this.ctx.beginPath();
-    this.ctx.arc(...normPoint.mul(...this.dims), radius, 0, Math.PI * 2, false);
+    this.ctx.arc(...this.getRelativePoint(normPoint), radius, 0, Math.PI * 2, false);
     this.ctx[{stroke: 'stroke', fill: 'fill'}[action]]();
     this.ctx.restore();
   }

@@ -15,8 +15,8 @@ class TouchDistance {
 
     this.ctx = this.canvas.getContext('2d');
 
-    this.min = 0.0;
-    this.max = 1.0;
+    this._min = 0.0;
+    this._max = 1.0;
 
     this.origin = new Point(0.5, 0.5);
     this.extent = new Point(0.5, 0.5); // the point we will use for touches
@@ -43,6 +43,18 @@ class TouchDistance {
     });
 
     this.render();
+  }
+
+  get min() { return this._min; }
+  set min(min) {
+    this._min = min;
+    this.update();
+  }
+
+  get max() { return this._max; }
+  set max(max) {
+    this._max = max;
+    this.update();
   }
 
   getRelativePoint(normPoint) { return normPoint.mul(...this.dims); }

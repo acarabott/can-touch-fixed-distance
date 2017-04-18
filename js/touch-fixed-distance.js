@@ -15,8 +15,8 @@ class TouchDistance {
 
     this.ctx = this.canvas.getContext('2d');
 
-    this.min = 0.0;
-    this.mul = 1.0;
+    this._min = 0.0;
+    this._mul = 1.0;
     this._value = 0.5;
 
     this.origin = new Point(0.5, 0.5);
@@ -50,6 +50,19 @@ class TouchDistance {
     this.render();
   }
 
+  get min() { return this._min; }
+  set min(min) {
+    this._min = min;
+    this.value = Math.max(min, this.value);
+    this.updateOutput();
+  }
+  get mul() { return this._mul; }
+  set mul(mul) {
+    this._mul = mul;
+    this.value = Math.min(this.value * mul, this.value);
+    this.updateOutput();
+  }
+
   getRelativeTouch(touch) {
     const bb = this.canvas.getBoundingClientRect();
     const x = touch.clientX - bb.left;
@@ -71,10 +84,13 @@ class TouchDistance {
   get value() { return this._value; }
 
   set value(value) {
-
     this._value = value;
-    if (this.output !== undefined) { this.output.value = value.toFixed(1); }
+    this.updateOutput();
     this.render();
+  }
+
+  updateOutput() {
+    if (this.output !== undefined) { this.output.value = this.value.toFixed(1); }
   }
 
   appendTo(domElement) {

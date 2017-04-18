@@ -127,10 +127,18 @@ class TouchDistance {
       this.renderArc(this.origin, this.touchRadius, style, 'stroke');
     }
 
-    // touch
     if (this.extent !== undefined) {
-      const style = 'rgba(249, 182, 118, 1.0)';
-      this.renderArc(this.extent, this.touchRadius, style, 'fill');
+      // touch
+      const touchStyle = 'rgba(249, 182, 118, 1.0)';
+      this.renderArc(this.extent, this.touchRadius, touchStyle, 'fill');
+
+      // line
+
+      this.ctx.strokeStyle = 'rgba(150, 150, 150, 1.0)';
+      this.ctx.beginPath();
+      this.ctx.moveTo(...this.originCanvas);
+      this.ctx.lineTo(...this.extentCanvas);
+      this.ctx.stroke();
     }
 
     this.ctx.restore();

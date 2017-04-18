@@ -4,73 +4,96 @@ document.ontouchmove = function(event){ event.preventDefault(); };
 class TouchDistance {
   constructor(normX, normY) {
     this.origin = new Point(normX, normY);
-    this.extent = new Point(0.5, 0.5); // the point we will use for touch
+    this.extent = new Point(0.5, 0.5); // the point we will use for input
     this._rgb = [43, 156, 212];
     this._radius = 100;
 
     this.canvas = document.createElement('canvas');
+    this.ctx = this.canvas.getContext('2d');
     {
       const resize = event => {
         this.canvas.width = window.innerWidth;
         this.canvas.height = window.innerHeight;
+        this.update();
       };
-      document.body.addEventListener('resize', resize);
+      window.addEventListener('resize', resize);
       resize();
     }
-    this.ctx = this.canvas.getContext('2d');
+
 
     this._min = 0.0;
     this._max = 1.0;
-    this.touchId = undefined;
+    this.inputId = undefined;
+
+    const startAction = input => {
+      this.extent = this.getNormInput(input);
+      this.update();
+    };
 
     window.addEventListener('touchstart', event => {
       if (this.active) { return; }
 
-      const touch = Array.from(event.touches).find(t => {
-        return this.getRelativeTouch(t).distance(this.originCanvas) <= this.radius;
+      const touch = Array.from(event.changedTouches).find(t => {
+        return this.getRelativeInput(t).distance(this.originCanvas) <= this.radius;
       });
       if (touch === undefined) { return; }
-
-      this.touchId = touch.identifier;
-      this.extent = this.getNormTouch(touch);
-      this.update();
+      this.inputId = touch.identifier;
+      startAction(touch);
     });
+
+    window.addEventListener('mousedown', event => {
+      if (this.getRelativeInput(event).distance(this.originCanvas) >= this.radius) { return; }
+      this.inputId = 1; // don't have id for mouse, so just use 1 as dummy
+      startAction(event);
+    });
+
+    const endAction = input => {
+      this.inputId = undefined;
+      this.update();
+    };
 
     window.addEventListener('touchend', event => {
       const touch = this.getMatchingTouch(event.changedTouches);
       if (touch === undefined) { return; }
-      this.touchId = undefined;
-      this.update();
+      endAction(touch);
     });
+
+    window.addEventListener('mouseup', event => endAction(event));
+
+    const moveAction = input => {
+      if (!this.active) { return; }
+      this.extent = this.getNormInput(input);
+      this.update();
+    };
 
     window.addEventListener('touchmove', event => {
       const touch = this.getMatchingTouch(event.changedTouches);
       if (touch === undefined) { return; }
-      this.extent = this.getNormTouch(touch);
-      this.update();
+      moveAction(touch);
     });
+
+    window.addEventListener('mousemove', event => moveAction(event));
 
     this.render();
   }
 
   getMatchingTouch(touches) {
-    return Array.from(touches).find(t => t.identifier === this.touchId);
+    return Array.from(touches).find(t => t.identifier === this.inputId);
   }
 
   get radius() { return this._radius; }
   set radius(radius) {
     this._radius = radius;
     this.update();
-  };
+  }
 
   get rgb() { return this._rgb; }
   set rgb(rgb) {
     this._rgb = rgb;
     this.update();
-  };
+  }
 
-
-  get active() { return this.touchId !== undefined; }
+  get active() { return this.inputId !== undefined; }
 
   get min() { return this._min; }
   set min(min) {
@@ -89,15 +112,13 @@ class TouchDistance {
   get originCanvas() { return this.getRelativePoint(this.origin); }
   get extentCanvas() { return this.extent === undefined ? undefined : this.getRelativePoint(this.extent); }
 
-  getRelativeTouch(touch) {
+  getRelativeInput(input) {
     const bb = this.canvas.getBoundingClientRect();
-    const x = touch.clientX - bb.left;
-    const y = touch.clientY - bb.top;
-    return new Point(x, y);
+    return new Point(input.clientX - bb.left, input.clientY - bb.top);
   }
 
-  getNormTouch(touch) {
-    return this.getRelativeTouch(touch).divide(...this.dims);
+  getNormInput(input) {
+    return this.getRelativeInput(input).divide(...this.dims);
   }
 
   update() {
@@ -174,7 +195,7 @@ class TouchDistance {
       this.ctx.lineWidth = 2;
       this.renderArc(this.origin, this.canvasMax, style, 'stroke');
 
-      // touch
+      // input
       this.renderArc(this.extent, this.radius, style, 'fill');
 
       // line

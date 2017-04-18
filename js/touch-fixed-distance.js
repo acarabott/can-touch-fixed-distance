@@ -28,7 +28,7 @@ class TouchDistance {
     this.canvas.addEventListener('touchstart', event => {
       const touch = event.touches[0];
       const pos = this.getRelativeTouch(touch);
-      const originCanvas = this.origin.mul(this.canvas.width, this.canvas.height);
+      const originCanvas = this.origin.mul(...this.dims);
       const distance = pos.distance(originCanvas);
       this.active = pos.distance(originCanvas) <= this.touchRadius;
 
@@ -71,7 +71,7 @@ class TouchDistance {
   }
 
   getNormTouch(touch) {
-    return this.getRelativeTouch(touch).divide(this.canvas.width, this.canvas.height);
+    return this.getRelativeTouch(touch).divide(...this.dims);
   }
 
   update() {
@@ -112,7 +112,7 @@ class TouchDistance {
 
   render() {
     this.ctx.save();
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.clearRect(0, 0, ...this.dims);
 
     if (this.origin !== undefined) {
       const opacity = this.active ? 0.8 : 0.5;

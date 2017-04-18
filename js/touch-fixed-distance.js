@@ -160,11 +160,11 @@ class TouchDistance {
   get dims() { return [this.canvas.width, this.canvas.height]; }
 
   // @action: 'stroke' or 'fill'
-  renderArc(normPoint, radius, style, action) {
+  renderArc(relativePoint, radius, style, action) {
     this.ctx.save();
     this.ctx[{stroke: 'strokeStyle', fill: 'fillStyle'}[action]] = style;
     this.ctx.beginPath();
-    this.ctx.arc(...this.getRelativePoint(normPoint), radius, 0, Math.PI * 2, false);
+    this.ctx.arc(...relativePoint, radius, 0, Math.PI * 2, false);
     this.ctx[{stroke: 'stroke', fill: 'fill'}[action]]();
     this.ctx.restore();
   }
@@ -176,28 +176,25 @@ class TouchDistance {
   render() {
     this.ctx.save();
     this.ctx.clearRect(0, 0, ...this.dims);
-
-    // origin
     const style = this.getRgbaString(this.active ? 0.8 : 0.5);
-    this.ctx.lineWidth = 4;
-    this.renderArc(this.origin, this.radius, style, 'stroke');
-    this.renderArc(this.origin, this.radius * this.valueNorm, style, 'fill');
 
-    // text
-    this.ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
-    const fontSize = this.radius * 0.5;
-    this.ctx.font = `${fontSize}px Menlo`;
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText(this.valueRender, ...this.originCanvas.add(0, fontSize / 4), this.radius * 2);
+    (this.active ? [this.origin, this.extent] : [this.origin]).forEach((point, i, arr) => {
+      const relativePoint = this.getRelativePoint(point);
+
+      // origin
+      this.ctx.lineWidth = 4;
+      this.renderArc(relativePoint, this.radius, style, 'stroke');
+      this.renderArc(relativePoint, this.radius * this.valueNorm, style, 'fill');
+
+      // text
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
+      const fontSize = this.radius * 0.5;
+      this.ctx.font = `${fontSize}px Menlo`;
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(this.valueRender, ...relativePoint.add(0, fontSize / 4), this.radius * 2);
+    });
 
     if (this.active) {
-      // max
-      this.ctx.lineWidth = 2;
-      this.renderArc(this.origin, this.canvasMax, style, 'stroke');
-
-      // input
-      this.renderArc(this.extent, this.radius, style, 'fill');
-
       // line
       this.ctx.strokeStyle = style;
       this.ctx.beginPath();

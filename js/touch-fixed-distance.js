@@ -123,6 +123,13 @@ class TouchDistance {
       this.renderArc(this.origin, feedbackRadius, style, 'fill');
     }
 
+    // max
+    if (this.active) {
+      const style = `rgba(43, 156, 212, ${this.active ? 0.8 : 0.5})`;
+      this.ctx.lineWidth = 2;
+      this.renderArc(this.origin, this.canvasMax, style, 'stroke');
+    }
+
     if (this.active) {
       // touch
       const touchStyle = 'rgba(249, 182, 118, 1.0)';

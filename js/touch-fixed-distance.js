@@ -66,10 +66,12 @@ class TouchDistance {
     this.render();
   }
 
+  get canvasMax() {
+    return Math.max(...this.dims) / 2;
+  }
+
   get normValue() {
-    const distance = this.originCanvas.distance(this.extentCanvas);
-    const max = (Math.max(...this.dims) / 2); // half the smallest dimension
-    return distance / max;
+    return this.originCanvas.distance(this.extentCanvas) / this.canvasMax;
   }
 
   get value() {

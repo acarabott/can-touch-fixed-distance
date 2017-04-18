@@ -25,9 +25,9 @@ class Point {
     return new Point(...args);
   }
 
-  mul(x, y = x) {
-    return new Point(this.x * x, this.y * y);
-  }
+  mul(x, y = x) { return new Point(this.x * x, this.y * y); }
+
+  divide(x, y = x) { return new Point(this.x / x, this.y / y); }
 
   distance(point) {
     const x = this.x - point.x;

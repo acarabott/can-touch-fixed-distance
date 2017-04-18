@@ -3,6 +3,11 @@ document.ontouchmove = function(event){ event.preventDefault(); };
 
 class TouchDistance {
   constructor(normX, normY) {
+    this.origin = new Point(normX, normY);
+    this.extent = new Point(0.5, 0.5); // the point we will use for touch
+    this._rgb = [43, 156, 212];
+    this._radius = 100;
+
     this.canvas = document.createElement('canvas');
     {
       const resize = event => {
@@ -12,24 +17,17 @@ class TouchDistance {
       document.body.addEventListener('resize', resize);
       resize();
     }
-
     this.ctx = this.canvas.getContext('2d');
 
     this._min = 0.0;
     this._max = 1.0;
-
-    this.origin = new Point(normX, normY);
-    this.extent = new Point(0.5, 0.5); // the point we will use for touches
-
-    // this.active = false;
-    this.touchRadius = 100;
     this.touchId = undefined;
 
     window.addEventListener('touchstart', event => {
       if (this.active) { return; }
 
       const touch = Array.from(event.touches).find(t => {
-        return this.getRelativeTouch(t).distance(this.originCanvas) <= this.touchRadius;
+        return this.getRelativeTouch(t).distance(this.originCanvas) <= this.radius;
       });
       if (touch === undefined) { return; }
 
@@ -58,6 +56,19 @@ class TouchDistance {
   getMatchingTouch(touches) {
     return Array.from(touches).find(t => t.identifier === this.touchId);
   }
+
+  get radius() { return this._radius; }
+  set radius(radius) {
+    this._radius = radius;
+    this.update();
+  };
+
+  get rgb() { return this._rgb; }
+  set rgb(rgb) {
+    this._rgb = rgb;
+    this.update();
+  };
+
 
   get active() { return this.touchId !== undefined; }
 
@@ -137,41 +148,37 @@ class TouchDistance {
     this.ctx.restore();
   }
 
+  getRgbaString(alpha) {
+    return `rgba(${this.rgb.join(',')}, ${alpha})`;
+  }
+
   render() {
     this.ctx.save();
     this.ctx.clearRect(0, 0, ...this.dims);
 
     // origin
-    {
-      const style = `rgba(43, 156, 212, ${this.active ? 0.8 : 0.5})`;
-      this.ctx.lineWidth = 4;
-      this.renderArc(this.origin, this.touchRadius, style, 'stroke');
+    const style = this.getRgbaString(this.active ? 0.8 : 0.5);
+    this.ctx.lineWidth = 4;
+    this.renderArc(this.origin, this.radius, style, 'stroke');
+    this.renderArc(this.origin, this.radius * this.valueNorm, style, 'fill');
 
-      const feedbackRadius = this.touchRadius * this.valueNorm;
-      this.renderArc(this.origin, feedbackRadius, style, 'fill');
+    // text
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
+    const fontSize = this.radius * 0.5;
+    this.ctx.font = `${fontSize}px Menlo`;
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(this.valueRender, ...this.originCanvas.add(0, fontSize / 4), this.radius * 2);
 
-      this.ctx.fillStyle = 'rgba(0, 0, 0, 1.0)';
-      const fontSize = this.touchRadius * 0.5;
-      this.ctx.font = `${fontSize}px Menlo`;
-      this.ctx.textAlign = 'center';
-      this.ctx.fillText(this.valueRender, ...this.originCanvas.add(0, fontSize / 4), this.touchRadius * 2);
-    }
-
-    // max
     if (this.active) {
-      const style = `rgba(43, 156, 212, ${this.active ? 0.8 : 0.5})`;
+      // max
       this.ctx.lineWidth = 2;
       this.renderArc(this.origin, this.canvasMax, style, 'stroke');
-    }
 
-    if (this.active) {
       // touch
-      const touchStyle = 'rgba(249, 182, 118, 1.0)';
-      this.renderArc(this.extent, this.touchRadius, touchStyle, 'fill');
+      this.renderArc(this.extent, this.radius, style, 'fill');
 
       // line
-
-      this.ctx.strokeStyle = 'rgba(150, 150, 150, 1.0)';
+      this.ctx.strokeStyle = style;
       this.ctx.beginPath();
       this.ctx.moveTo(...this.originCanvas);
       this.ctx.lineTo(...this.extentCanvas);
@@ -198,4 +205,6 @@ dist.max = 100;
 dist.appendTo(box);
 
 const dist2 = new TouchDistance(0.6, 0.5);
+dist2.radius = 80;
+dist2.rgb = [43, 212, 156];
 dist2.appendTo(box);

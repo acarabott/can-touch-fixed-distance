@@ -119,7 +119,7 @@ class TouchDistance {
       this.ctx.lineWidth = 4;
       this.renderArc(this.origin, this.touchRadius, style, 'stroke');
 
-      const feedbackRadius = this.touchRadius * 0.5;
+      const feedbackRadius = this.touchRadius * this.valueNorm;
       this.renderArc(this.origin, feedbackRadius, style, 'fill');
     }
 

@@ -33,9 +33,11 @@ h1 {
 }
 
 canvas {
+  position: absolute;
   margin: 0 auto;
   display: block;
   border: 1px black solid;
+  height: auto;
 }
 
 #container {
@@ -48,11 +50,6 @@ canvas {
   display: block;
   margin: 20px auto;
   border: 1px rgb(232, 232, 232) solid;
-}
-
-canvas {
-  /*width: 100%;*/
-  height: auto;
 }
 
 input {

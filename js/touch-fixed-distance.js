@@ -2,7 +2,7 @@
 document.ontouchmove = function(event){ event.preventDefault(); };
 
 class TouchDistance {
-  constructor() {
+  constructor(normX, normY) {
     this.canvas = document.createElement('canvas');
     {
       const resize = event => {
@@ -18,13 +18,13 @@ class TouchDistance {
     this._min = 0.0;
     this._max = 1.0;
 
-    this.origin = new Point(0.5, 0.5);
+    this.origin = new Point(normX, normY);
     this.extent = new Point(0.5, 0.5); // the point we will use for touches
 
     this.active = false;
     this.touchRadius = 100;
 
-    this.canvas.addEventListener('touchstart', event => {
+    document.addEventListener('touchstart', event => {
       const touch = event.touches[0];
       const pos = this.getRelativeTouch(touch);
       this.active = pos.distance(this.originCanvas) <= this.touchRadius;
@@ -32,12 +32,12 @@ class TouchDistance {
       this.update();
     });
 
-    this.canvas.addEventListener('touchend', event => {
+    document.addEventListener('touchend', event => {
       this.active = false;
       this.update();
     });
 
-    this.canvas.addEventListener('touchmove', event => {
+    document.addEventListener('touchmove', event => {
       this.extent = this.active ? this.getNormTouch(event.touches[0]) : this.extent;
       this.update();
     });
@@ -176,10 +176,10 @@ function createOutput(input, parent = document.body) {
 
 const box = document.getElementById('container');
 
-const dist = new TouchDistance();
-
+const dist = new TouchDistance(0.3, 0.5);
 dist.min = 50;
 dist.max = 100;
-
-createOutput(dist, box);
 dist.appendTo(box);
+
+const dist2 = new TouchDistance(0.6, 0.5);
+dist2.appendTo(box);

@@ -1,0 +1,25 @@
+{
+  "name": "can-touch-distance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "dependencies": {
+    "hammerjs": "^2.0.8"
+  },
+  "devDependencies": {
+    "hammerjs": "^2.0.8"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acarabott/can-touch-distance.git"
+  },
+  "author": "Arthur Carabott",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/acarabott/can-touch-distance/issues"
+  },
+  "homepage": "https://github.com/acarabott/can-touch-distance#readme"
+}

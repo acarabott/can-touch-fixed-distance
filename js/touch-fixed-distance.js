@@ -70,12 +70,12 @@ class TouchDistance {
     return Math.max(...this.dims) / 2;
   }
 
-  get normValue() {
-    return this.originCanvas.distance(this.extentCanvas) / this.canvasMax;
+  get valueNorm() {
+    return Math.min(1.0, this.originCanvas.distance(this.extentCanvas) / this.canvasMax);
   }
 
   get value() {
-    const scaled = this.normValue * (this.max - this.min);
+    const scaled = this.valueNorm * (this.max - this.min);
     return Math.min(this.min + scaled, this.max);
   }
 

@@ -33,16 +33,14 @@ class TouchDistance {
     window.addEventListener('touchstart', event => {
       if (this.active) { return; }
 
-      const touch = Array.from(event.changedTouches).find(t => {
-        return this.getRelativeInput(t).distance(this.originCanvas) <= this.radius;
-      });
+      const touch = Array.from(event.changedTouches).find(t => this.inputInsideOrigin(t));
       if (touch === undefined) { return; }
       this.inputId = touch.identifier;
       startAction(touch);
     });
 
     window.addEventListener('mousedown', event => {
-      if (this.getRelativeInput(event).distance(this.originCanvas) >= this.radius) { return; }
+      if (!this.inputInsideOrigin(event)) { return; }
       this.inputId = 1; // don't have id for mouse, so just use 1 as dummy
       startAction(event);
     });
@@ -75,6 +73,14 @@ class TouchDistance {
     window.addEventListener('mousemove', event => moveAction(event));
 
     this.render();
+  }
+
+  inputInsidePoint(input, point, radius) {
+    return this.getRelativeInput(input).distance(point) <= radius;
+  }
+
+  inputInsideOrigin(input) {
+    return this.inputInsidePoint(input, this.originCanvas, this.radius);
   }
 
   getMatchingTouch(touches) {

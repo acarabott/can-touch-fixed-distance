@@ -4,9 +4,10 @@ document.ontouchmove = function(event){ event.preventDefault(); };
 class TouchDistance {
   constructor(normX, normY) {
     this.origin = new Point(normX, normY);
-    this.extent = new Point(0.5, 0.5); // the point we will use for input
+    this.extent = new Point(normX, normY); // the point we will use for input
     this._rgb = [43, 156, 212];
     this._radius = 100;
+    this.grabbed = false;
 
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
@@ -26,7 +27,6 @@ class TouchDistance {
     this.inputId = undefined;
 
     const startAction = input => {
-      this.extent = this.getNormInput(input);
       this.update();
     };
 
@@ -47,6 +47,7 @@ class TouchDistance {
 
     const endAction = input => {
       this.inputId = undefined;
+      this.grabbed = false;
       this.update();
     };
 
@@ -60,7 +61,16 @@ class TouchDistance {
 
     const moveAction = input => {
       if (!this.active) { return; }
-      this.extent = this.getNormInput(input);
+      if (this.grabbed) { this.extent = this.getNormInput(input); }
+      else {
+        const insideExtent = this.inputInsidePoint(input, this.extentCanvas, this.radius);
+        const originExtentDistance = this.originCanvas.distance(this.extentCanvas);
+        const originInputDistance = this.getRelativeInput(input).distance(this.originCanvas);
+        const beyondCenter = originInputDistance >= originExtentDistance;
+        if (insideExtent && beyondCenter) {
+          this.grabbed = true;
+        }
+      }
       this.update();
     };
 
@@ -196,13 +206,15 @@ class TouchDistance {
     this.ctx.textAlign = 'center';
     this.ctx.fillText(this.valueRender, ...this.originCanvas.add(0, fontSize / 4), this.radius * 2);
 
+    // extent
     if (this.active) {
       // max
       this.ctx.lineWidth = 2;
       this.renderArc(this.origin, this.canvasMax, style, 'stroke');
 
       // input
-      this.renderArc(this.extent, this.radius, style, 'fill');
+      const action = this.grabbed ? 'fill' : 'stroke';
+      this.renderArc(this.extent, this.radius * 0.8, style, action);
 
       // line
       this.ctx.strokeStyle = style;

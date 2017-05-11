@@ -30,10 +30,10 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   text-align: center;
+  margin: 2vh 0;
 }
 
 canvas {
-  position: absolute;
   margin: 0 auto;
   display: block;
   border: 1px black solid;

@@ -13,8 +13,8 @@ class TouchDistance {
     this.ctx = this.canvas.getContext('2d');
     {
       const resize = event => {
-        this.canvas.width = window.innerWidth;
-        this.canvas.height = window.innerHeight;
+        this.canvas.width = window.innerWidth * 0.9;
+        this.canvas.height = window.innerHeight * 0.8;
         this.update();
       };
       window.addEventListener('resize', resize);
@@ -143,7 +143,7 @@ class TouchDistance {
   }
 
   get canvasMax() {
-    return Math.max(...this.dims) / 2;
+    return Math.min(...this.dims) / 2;
   }
 
   get valueNorm() {
@@ -238,12 +238,12 @@ function createOutput(input, parent = document.body) {
 
 const box = document.getElementById('container');
 
-const dist = new TouchDistance(0.3, 0.5);
-dist.min = 50;
+const dist = new TouchDistance(0.5, 0.5);
+dist.min = 0;
 dist.max = 100;
 dist.appendTo(box);
 
-const dist2 = new TouchDistance(0.6, 0.5);
-dist2.radius = 80;
-dist2.rgb = [43, 212, 156];
-dist2.appendTo(box);
+// const dist2 = new TouchDistance(0.6, 0.5);
+// dist2.radius = 80;
+// dist2.rgb = [43, 212, 156];
+// dist2.appendTo(box);

@@ -61,7 +61,17 @@ class TouchDistance {
 
     const moveAction = input => {
       if (!this.active) { return; }
-      if (this.grabbed) { this.extent = this.getNormInput(input); }
+      if (this.grabbed) {
+        const relativeInput = this.getRelativeInput(input);
+        const dist = this.originCanvas.distance(relativeInput) / this.canvasMax;
+        if (dist <= 1.0) { this.extent = this.getNormInput(input); }
+        else {
+          const inputTranslated = relativeInput.subtract(this.originCanvas);
+          const inputConstrained = inputTranslated.mul(1.0 / dist);
+          const inputRetranslated = inputConstrained.add(this.originCanvas);
+          this.extent = inputRetranslated.divide(...this.dims);
+        }
+      }
       else {
         const insideExtent = this.inputInsidePoint(input, this.extentCanvas, this.radius);
         const originExtentDistance = this.originCanvas.distance(this.extentCanvas);
@@ -143,7 +153,7 @@ class TouchDistance {
   }
 
   get canvasMax() {
-    return Math.min(...this.dims) / 2;
+    return Math.min(...this.dims) / 2.75;
   }
 
   get valueNorm() {
@@ -209,8 +219,9 @@ class TouchDistance {
     // extent
     if (this.active) {
       // max
-      this.ctx.lineWidth = 2;
-      this.renderArc(this.origin, this.canvasMax, style, 'stroke');
+      const lineWidth = 2;
+      this.ctx.lineWidth = lineWidth;
+      this.renderArc(this.origin, this.canvasMax - lineWidth * 2, style, 'stroke');
 
       // input
       const action = this.grabbed ? 'fill' : 'stroke';

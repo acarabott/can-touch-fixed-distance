@@ -35,7 +35,7 @@ h1 {
 
 canvas {
   position: absolute;
-  margin: 0 auto;
+  margin: 0 5vw;
   display: block;
   /*border: 1px black solid;*/
   height: auto;

@@ -1,3 +1,4 @@
+/* global Point */
 // prevent mobile scrolling
 document.ontouchmove = function(event){ event.preventDefault(); };
 
@@ -63,19 +64,19 @@ class TouchDistance {
       if (!this.active) { return; }
       if (this.grabbed) {
         const relativeInput = this.getRelativeInput(input);
-        const dist = this.originCanvas.distance(relativeInput) / this.canvasMax;
+        const dist = this.originCanvasPoint.distance(relativeInput) / this.canvasMax;
         if (dist <= 1.0) { this.extent = this.getNormInput(input); }
         else {
-          const inputTranslated = relativeInput.subtract(this.originCanvas);
+          const inputTranslated = relativeInput.subtract(this.originCanvasPoint);
           const inputConstrained = inputTranslated.mul(1.0 / dist);
-          const inputRetranslated = inputConstrained.add(this.originCanvas);
+          const inputRetranslated = inputConstrained.add(this.originCanvasPoint);
           this.extent = inputRetranslated.divide(...this.dims);
         }
       }
       else {
-        const insideExtent = this.inputInsidePoint(input, this.extentCanvas, this.radius);
-        const originExtentDistance = this.originCanvas.distance(this.extentCanvas);
-        const originInputDistance = this.getRelativeInput(input).distance(this.originCanvas);
+        const insideExtent = this.inputInsidePoint(input, this.extentCanvasPoint, this.radius);
+        const originExtentDistance = this.originCanvasPoint.distance(this.extentCanvasPoint);
+        const originInputDistance = this.getRelativeInput(input).distance(this.originCanvasPoint);
         const beyondCenter = originInputDistance >= originExtentDistance;
         if (insideExtent && beyondCenter) {
           this.grabbed = true;
@@ -100,7 +101,7 @@ class TouchDistance {
   }
 
   inputInsideOrigin(input) {
-    return this.inputInsidePoint(input, this.originCanvas, this.radius);
+    return this.inputInsidePoint(input, this.originCanvasPoint, this.radius);
   }
 
   getMatchingTouch(touches) {
@@ -135,8 +136,8 @@ class TouchDistance {
 
   getRelativePoint(normPoint) { return normPoint.mul(...this.dims); }
 
-  get originCanvas() { return this.getRelativePoint(this.origin); }
-  get extentCanvas() { return this.extent === undefined ? undefined : this.getRelativePoint(this.extent); }
+  get originCanvasPoint() { return this.getRelativePoint(this.origin); }
+  get extentCanvasPoint() { return this.extent === undefined ? undefined : this.getRelativePoint(this.extent); }
 
   getRelativeInput(input) {
     const bb = this.canvas.getBoundingClientRect();
@@ -153,11 +154,11 @@ class TouchDistance {
   }
 
   get canvasMax() {
-    return Math.min(...this.dims) / 2.75;
+    return Math.min(...this.dims) / 3 * (this.radius / 75);
   }
 
   get valueNorm() {
-    return Math.min(1.0, this.originCanvas.distance(this.extentCanvas) / this.canvasMax);
+    return Math.min(1.0, this.originCanvasPoint.distance(this.extentCanvasPoint) / this.canvasMax);
   }
 
   get value() {
@@ -214,7 +215,7 @@ class TouchDistance {
     const fontSize = this.radius * 0.5;
     this.ctx.font = `${fontSize}px Menlo`;
     this.ctx.textAlign = 'center';
-    this.ctx.fillText(this.valueRender, ...this.originCanvas.add(0, fontSize / 4), this.radius * 2);
+    this.ctx.fillText(this.valueRender, ...this.originCanvasPoint.add(0, fontSize / 4), this.radius * 2);
 
     // extent
     if (this.active) {
@@ -230,21 +231,13 @@ class TouchDistance {
       // line
       this.ctx.strokeStyle = style;
       this.ctx.beginPath();
-      this.ctx.moveTo(...this.originCanvas);
-      this.ctx.lineTo(...this.extentCanvas);
+      this.ctx.moveTo(...this.originCanvasPoint);
+      this.ctx.lineTo(...this.extentCanvasPoint);
       this.ctx.stroke();
     }
 
     this.ctx.restore();
   }
-}
-
-function createOutput(input, parent = document.body) {
-  const output = document.createElement('input');
-  output.value = input.value;
-  output.classList.add('output');
-  parent.appendChild(output);
-  input.outputElement = output;
 }
 
 const box = document.getElementById('container');
@@ -254,7 +247,14 @@ dist.min = 0;
 dist.max = 100;
 dist.appendTo(box);
 
-// const dist2 = new TouchDistance(0.6, 0.5);
-// dist2.radius = 80;
-// dist2.rgb = [43, 212, 156];
-// dist2.appendTo(box);
+const dist2 = new TouchDistance(0.35, 0.7);
+dist2.radius = 50;
+dist2.rgb = [43, 212, 156];
+dist2.appendTo(box);
+
+const dist3 = new TouchDistance(0.65, 0.7);
+dist3.radius = 50;
+dist3.rgb = [43, 212, 156];
+dist3.min = 10;
+dist3.max = 30;
+dist3.appendTo(box);

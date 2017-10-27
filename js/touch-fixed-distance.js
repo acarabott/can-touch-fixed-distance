@@ -247,12 +247,12 @@ dist.min = 0;
 dist.max = 100;
 dist.appendTo(box);
 
-const dist2 = new TouchDistance(0.35, 0.7);
+const dist2 = new TouchDistance(0.04, 0.925);
 dist2.radius = 50;
 dist2.rgb = [43, 212, 156];
 dist2.appendTo(box);
 
-const dist3 = new TouchDistance(0.65, 0.7);
+const dist3 = new TouchDistance(0.9675, 0.5);
 dist3.radius = 50;
 dist3.rgb = [43, 212, 156];
 dist3.min = 10;

@@ -32,7 +32,7 @@ class TouchDistance {
         const pos = this.getRelativePoint(this.extent);
         this.tutorialEl.style.left = `${pos.x}px`;
         this.tutorialEl.style.top = `${pos.y}px`;
-        this.tutorialEl.textContent = "Now grab the handle";
+        this.tutorialEl.textContent = "Now move to the handle to grab it";
         this.parentEl.appendChild(this.tutorialEl);
 
         this.tutorialDone = true;
@@ -88,6 +88,7 @@ class TouchDistance {
           const inputRetranslated = inputConstrained.add(this.originCanvasPoint);
           this.extent = inputRetranslated.divide(...this.dims);
         }
+        this.extent = this.extent.max(Point.zero).min(new Point(1, 1));
       }
       else {
         const insideExtent = this.inputInsidePoint(input, this.extentCanvasPoint, this.radius);

@@ -1,4 +1,6 @@
 export class Point {
+  static get zero() { return new Point(0, 0); }
+
   constructor(x, y) {
     this.x = x;
     this.y = y;
@@ -31,6 +33,14 @@ export class Point {
     const x = this.x - point.x;
     const y = this.y - point.y;
     return Math.sqrt((x * x) + (y * y));
+  }
+
+  min(point) {
+    return new Point(Math.min(this.x, point.x), Math.min(this.y, point.y));
+  }
+
+  max(point) {
+    return new Point(Math.max(this.x, point.x), Math.max(this.y, point.y));
   }
 
   asArray() { return [this.x, this.y]; }

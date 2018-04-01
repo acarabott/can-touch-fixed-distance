@@ -12,11 +12,11 @@ module.exports = {
     contentBase: "./dist"
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      filename: "index.html",
-      template: "src/index.html",
-      inject: "head"
-    }),
+    // new HtmlWebpackPlugin({
+    //   filename: "index.html",
+    //   template: "src/index.html",
+    //   inject: "head"
+    // }),
     // new CleanWebpackPlugin([buildPath])
   ],
   output: {

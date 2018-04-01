@@ -43,5 +43,9 @@ export class Point {
     return new Point(Math.max(this.x, point.x), Math.max(this.y, point.y));
   }
 
+  round() {
+    return new Point(Math.round(this.x), Math.round(this.y));
+  }
+
   asArray() { return [this.x, this.y]; }
 }

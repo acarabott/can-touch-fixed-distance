@@ -29,13 +29,22 @@ class TouchDistance {
       if (!this.tutorialDone && this.extent.x !== normX && this.extent.y !== normY) {
         this.tutorialEl = document.createElement("div");
         this.tutorialEl.style.position = "absolute";
-        const pos = this.getRelativePoint(this.extent);
-        this.tutorialEl.style.left = `${pos.x}px`;
-        this.tutorialEl.style.top = `${pos.y}px`;
-        this.tutorialEl.textContent = "Now move to the handle to grab it";
+        const startPoint = this.originCanvasPoint.round();
+        const endPoint = this.getRelativePoint(this.extent).round().add(20, -10);
+        this.tutorialEl.style.width = "300px";
+        this.tutorialEl.style.left = `${startPoint.x}px`;
+        this.tutorialEl.style.top = `${startPoint.y}px`;
+        this.tutorialEl.textContent = "Move to the handle to grab it";
         this.parentEl.appendChild(this.tutorialEl);
 
-        this.tutorialDone = true;
+        this.tutorialEl.animate([
+          { left: `${endPoint.x}px`, top: `${endPoint.y}px` },
+        ], {
+          delay: 100,
+          duration: 1000,
+          easing: "ease-out",
+          fill: "forwards"
+        });
       }
     };
 
@@ -54,7 +63,6 @@ class TouchDistance {
       if (touch === undefined) { return; }
       this.inputId = touch.identifier;
       startAction(touch);
-
     });
 
     this.parentEl.addEventListener("mousedown", onMouseDown);
@@ -63,6 +71,10 @@ class TouchDistance {
       this.inputId = undefined;
       this.grabbed = false;
       this.update();
+      if (this.tutorialEl !== undefined) {
+        this.tutorialEl.remove();
+        this.tutorialEl = undefined;
+      }
     };
 
     const mouseEndAction = event => endAction(event);
@@ -100,6 +112,7 @@ class TouchDistance {
           if (this.tutorialEl !== undefined) {
             this.tutorialEl.remove();
             this.tutorialEl = undefined;
+            this.tutorialDone = true;
           }
         }
       }

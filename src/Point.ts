@@ -11,9 +11,8 @@ export class Point {
     this.y = y;
   }
 
-  *[Symbol.iterator]() {
-    yield this.x;
-    yield this.y;
+  get vals() {
+    return [this.x, this.y] as const;
   }
 
   gte(point: Point) {
@@ -28,20 +27,28 @@ export class Point {
     return `${this.x.toFixed(0)}, ${this.y.toFixed(0)}`;
   }
 
-  subtract(pointOrX: Point | number, y: number) {
-    const args: [number, number] =
-      pointOrX instanceof Point
-        ? [this.x - pointOrX.x, this.y - pointOrX.y]
-        : [this.x - pointOrX, this.y - y];
-    return new Point(...args);
+  subtract(pointOrX: Point | number, y?: number) {
+    if (pointOrX instanceof Point) {
+      return new Point(this.x - pointOrX.x, this.y - pointOrX.y);
+    }
+
+    if (y === undefined) {
+      throw new TypeError("No y value provided");
+    }
+
+    return new Point(this.x - pointOrX, this.y - y);
   }
 
-  add(pointOrX: Point | number, y: number) {
-    const args: [number, number] =
-      pointOrX instanceof Point
-        ? [this.x + pointOrX.x, this.y + pointOrX.y]
-        : [this.x + pointOrX, this.y + y];
-    return new Point(...args);
+  add(pointOrX: Point | number, y?: number) {
+    if (pointOrX instanceof Point) {
+      return new Point(this.x + pointOrX.x, this.y + pointOrX.y);
+    }
+
+    if (y === undefined) {
+      throw new TypeError("No y value provided");
+    }
+
+    return new Point(this.x + pointOrX, this.y + y);
   }
 
   mul(x: number, y = x) {

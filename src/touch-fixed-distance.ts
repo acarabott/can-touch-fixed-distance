@@ -1,7 +1,36 @@
 import { Point } from "./Point.js";
 
+type RGB = [number, number, number];
+
+const getContext = (canvas: HTMLCanvasElement) => {
+  const ctx = canvas.getContext("2d");
+
+  if (ctx === null) {
+    throw new Error("Could not get context for canvas");
+  }
+
+  return ctx;
+};
+
 class TouchDistance {
-  constructor(parentEl, normX, normY) {
+  private parentEl: HTMLElement;
+  private origin: Point;
+  private extent: Point;
+  private _rgb: RGB;
+  private _radius: number;
+  private grabbed: boolean;
+  private tutorialDone: boolean;
+
+  private canvas: HTMLCanvasElement;
+  private ctx: CanvasRenderingContext2D;
+
+  private _min: number;
+  private _max: number;
+  private inputId: number | undefined;
+
+  private tutorialEl: HTMLElement | undefined;
+
+  constructor(parentEl: HTMLElement, normX: number, normY: number) {
     this.parentEl = parentEl;
     this.origin = new Point(normX, normY);
     this.extent = new Point(normX, normY); // the point we will use for input
@@ -11,7 +40,7 @@ class TouchDistance {
     this.tutorialDone = false;
 
     this.canvas = document.createElement("canvas");
-    this.ctx = this.canvas.getContext("2d");
+    this.ctx = getContext(this.canvas);
 
     this.parentEl.appendChild(this.canvas);
     this.resize();
@@ -21,6 +50,7 @@ class TouchDistance {
     this.inputId = undefined;
 
     this.tutorialEl = undefined;
+
     const startAction = () => {
       this.update();
 
@@ -46,13 +76,13 @@ class TouchDistance {
       }
     };
 
-    const onMouseDown = (event) => {
+    const onMouseDown = (event: MouseEvent) => {
       event.preventDefault();
       if (!this.inputInsideOrigin(event)) {
         return;
       }
       this.inputId = 1; // don"t have id for mouse, so just use 1 as dummy
-      startAction(event);
+      startAction();
     };
 
     this.parentEl.addEventListener(
@@ -68,7 +98,7 @@ class TouchDistance {
           return;
         }
         this.inputId = touch.identifier;
-        startAction(touch);
+        startAction();
       },
       { passive: false },
     );
@@ -85,24 +115,20 @@ class TouchDistance {
       }
     };
 
-    const mouseEndAction = (event) => endAction(event);
+    const mouseEndAction = () => endAction();
 
     window.addEventListener(
       "touchend",
-      (event) => {
+      () => {
         window.removeEventListener("mouseup", mouseEndAction);
-        const touch = this.getMatchingTouch(event.changedTouches);
-        if (touch === undefined) {
-          return;
-        }
-        endAction(touch);
+        endAction();
       },
       { passive: false },
     );
 
     window.addEventListener("mouseup", mouseEndAction, { passive: false });
 
-    const moveAction = (input) => {
+    const moveAction = (input: MouseEvent | Touch) => {
       if (!this.active) {
         return;
       }
@@ -179,15 +205,15 @@ class TouchDistance {
     this.update();
   }
 
-  inputInsidePoint(input, point, radius) {
+  inputInsidePoint(input: MouseEvent | Touch, point: Point, radius: number) {
     return this.getRelativeInput(input).distance(point) <= radius;
   }
 
-  inputInsideOrigin(input) {
+  inputInsideOrigin(input: MouseEvent | Touch) {
     return this.inputInsidePoint(input, this.originCanvasPoint, this.radius);
   }
 
-  getMatchingTouch(touches) {
+  getMatchingTouch(touches: TouchList) {
     return Array.from(touches).find((t) => t.identifier === this.inputId);
   }
 
@@ -227,7 +253,7 @@ class TouchDistance {
     this.update();
   }
 
-  getRelativePoint(normPoint) {
+  getRelativePoint(normPoint: Point) {
     return normPoint.mul(...this.dims);
   }
 
@@ -235,20 +261,19 @@ class TouchDistance {
     return this.getRelativePoint(this.origin);
   }
   get extentCanvasPoint() {
-    return this.extent === undefined ? undefined : this.getRelativePoint(this.extent);
+    return this.getRelativePoint(this.extent);
   }
 
-  getRelativeInput(input) {
+  getRelativeInput(input: MouseEvent | Touch) {
     const bb = this.canvas.getBoundingClientRect();
     return new Point(input.clientX - bb.left, input.clientY - bb.top);
   }
 
-  getNormInput(input) {
+  getNormInput(input: MouseEvent | Touch) {
     return this.getRelativeInput(input).divide(...this.dims);
   }
 
   update() {
-    this.updateOutput();
     this.render();
   }
 
@@ -271,35 +296,22 @@ class TouchDistance {
     return this.value.toFixed(precision);
   }
 
-  updateOutput() {
-    if (this.output !== undefined) {
-      this.output.value = this.valueRender;
-    }
-  }
-
-  appendTo(domElement) {
-    domElement.appendChild(this.canvas);
-  }
-
-  set outputElement(domElement) {
-    this.output = domElement;
-  }
-
   get dims() {
-    return [this.canvasWidth, this.canvasHeight];
+    return [this.canvasWidth, this.canvasHeight] as const;
   }
 
   // @action: "stroke" or "fill"
-  renderArc(normPoint, radius, style, action) {
+  renderArc(normPoint: Point, radius: number, style: string, action: "stroke" | "fill") {
     this.ctx.save();
-    this.ctx[{ stroke: "strokeStyle", fill: "fillStyle" }[action]] = style;
+    const prop = ({ stroke: "strokeStyle", fill: "fillStyle" } as const)[action];
+    this.ctx[prop] = style;
     this.ctx.beginPath();
-    this.ctx.arc(...this.getRelativePoint(normPoint), radius, 0, Math.PI * 2, false);
-    this.ctx[{ stroke: "stroke", fill: "fill" }[action]]();
+    this.ctx.arc(...this.getRelativePoint(normPoint).vals, radius, 0, Math.PI * 2, false);
+    this.ctx[action]();
     this.ctx.restore();
   }
 
-  getRgbaString(alpha) {
+  getRgbaString(alpha: number) {
     return `rgba(${this.rgb.join(",")}, ${alpha})`;
   }
 
@@ -320,7 +332,7 @@ class TouchDistance {
     this.ctx.textAlign = "center";
     this.ctx.fillText(
       this.valueRender,
-      ...this.originCanvasPoint.add(0, fontSize / 4),
+      ...this.originCanvasPoint.add(0, fontSize / 4).vals,
       this.radius * 2,
     );
 
@@ -338,8 +350,8 @@ class TouchDistance {
       // line
       this.ctx.strokeStyle = style;
       this.ctx.beginPath();
-      this.ctx.moveTo(...this.originCanvasPoint);
-      this.ctx.lineTo(...this.extentCanvasPoint);
+      this.ctx.moveTo(...this.originCanvasPoint.vals);
+      this.ctx.lineTo(...this.extentCanvasPoint.vals);
       this.ctx.stroke();
     }
 
@@ -372,10 +384,7 @@ const normRadii = [0.15, 0.075, 0.075];
 
 function resize() {
   [dist, dist2, dist3].forEach((touchDistance, i) => {
-    const minDimension = Math.min(
-      touchDistance.parentEl.clientWidth,
-      touchDistance.parentEl.clientHeight,
-    );
+    const minDimension = Math.min(container.clientWidth, container.clientHeight);
     touchDistance.radius = minDimension * normRadii[i];
     touchDistance.resize();
   });

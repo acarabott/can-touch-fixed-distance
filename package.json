@@ -3,14 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.html",
-  "dependencies": {
-    "hammerjs": "^2.0.8"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "hammerjs": "^2.0.8"
+    "eslint": "^8.5.0",
+    "prettier": "^2.5.1",
+    "typescript": "^4.5.4",
+    "vite": "^2.7.6"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite --host",
+    "build": "tsc && vite build --base=/assets/projects/change-a-number/interactive/distance-pot/",
+    "serve": "vite preview"
   },
   "repository": {
     "type": "git",

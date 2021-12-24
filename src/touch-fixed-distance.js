@@ -1,5 +1,3 @@
-require("./../css/touch-fixed-distance.css");
-
 import { Point } from "./Point.js";
 
 class TouchDistance {
@@ -37,35 +35,45 @@ class TouchDistance {
         this.tutorialEl.textContent = "Move to the handle to grab it";
         this.parentEl.appendChild(this.tutorialEl);
 
-        this.tutorialEl.animate([
-          { left: `${endPoint.x}px`, top: `${endPoint.y}px` },
-        ], {
+        this.tutorialEl.style.transition = `left ${endPoint.x}px 1s ease-in-out 0.3s`;
+
+        this.tutorialEl.animate([{ left: `${endPoint.x}px`, top: `${endPoint.y}px` }], {
           delay: 100,
           duration: 1000,
           easing: "ease-out",
-          fill: "forwards"
+          fill: "forwards",
         });
       }
     };
 
-    const onMouseDown = event => {
+    const onMouseDown = (event) => {
       event.preventDefault();
-      if (!this.inputInsideOrigin(event)) { return; }
+      if (!this.inputInsideOrigin(event)) {
+        return;
+      }
       this.inputId = 1; // don"t have id for mouse, so just use 1 as dummy
       startAction(event);
     };
 
-    this.parentEl.addEventListener("touchstart", event => {
-      this.parentEl.removeEventListener("mousedown", onMouseDown);
-      if (this.active) { return; }
+    this.parentEl.addEventListener(
+      "touchstart",
+      (event) => {
+        this.parentEl.removeEventListener("mousedown", onMouseDown);
+        if (this.active) {
+          return;
+        }
 
-      const touch = Array.from(event.changedTouches).find(t => this.inputInsideOrigin(t));
-      if (touch === undefined) { return; }
-      this.inputId = touch.identifier;
-      startAction(touch);
-    });
+        const touch = Array.from(event.changedTouches).find((t) => this.inputInsideOrigin(t));
+        if (touch === undefined) {
+          return;
+        }
+        this.inputId = touch.identifier;
+        startAction(touch);
+      },
+      { passive: false },
+    );
 
-    this.parentEl.addEventListener("mousedown", onMouseDown);
+    this.parentEl.addEventListener("mousedown", onMouseDown, { passive: false });
 
     const endAction = () => {
       this.inputId = undefined;
@@ -77,32 +85,40 @@ class TouchDistance {
       }
     };
 
-    const mouseEndAction = event => endAction(event);
+    const mouseEndAction = (event) => endAction(event);
 
-    window.addEventListener("touchend", event => {
-      window.removeEventListener("mouseup", mouseEndAction);
-      const touch = this.getMatchingTouch(event.changedTouches);
-      if (touch === undefined) { return; }
-      endAction(touch);
-    });
+    window.addEventListener(
+      "touchend",
+      (event) => {
+        window.removeEventListener("mouseup", mouseEndAction);
+        const touch = this.getMatchingTouch(event.changedTouches);
+        if (touch === undefined) {
+          return;
+        }
+        endAction(touch);
+      },
+      { passive: false },
+    );
 
-    window.addEventListener("mouseup", mouseEndAction);
+    window.addEventListener("mouseup", mouseEndAction, { passive: false });
 
-    const moveAction = input => {
-      if (!this.active) { return; }
+    const moveAction = (input) => {
+      if (!this.active) {
+        return;
+      }
       if (this.grabbed) {
         const relativeInput = this.getRelativeInput(input);
         const dist = this.originCanvasPoint.distance(relativeInput) / this.canvasMax;
-        if (dist <= 1.0) { this.extent = this.getNormInput(input); }
-        else {
+        if (dist <= 1.0) {
+          this.extent = this.getNormInput(input);
+        } else {
           const inputTranslated = relativeInput.subtract(this.originCanvasPoint);
           const inputConstrained = inputTranslated.mul(1.0 / dist);
           const inputRetranslated = inputConstrained.add(this.originCanvasPoint);
           this.extent = inputRetranslated.divide(...this.dims);
         }
         this.extent = this.extent.max(Point.zero).min(new Point(1, 1));
-      }
-      else {
+      } else {
         const insideExtent = this.inputInsidePoint(input, this.extentCanvasPoint, this.radius);
         const originExtentDistance = this.originCanvasPoint.distance(this.extentCanvasPoint);
         const originInputDistance = this.getRelativeInput(input).distance(this.originCanvasPoint);
@@ -119,20 +135,47 @@ class TouchDistance {
       this.update();
     };
 
-    window.addEventListener("touchmove", event => {
-      const touch = this.getMatchingTouch(event.changedTouches);
-      if (touch === undefined) { return; }
-      moveAction(touch);
-    });
+    window.addEventListener(
+      "touchmove",
+      (event) => {
+        const touch = this.getMatchingTouch(event.changedTouches);
+        if (touch === undefined) {
+          return;
+        }
+        moveAction(touch);
+      },
+      { passive: false },
+    );
 
-    window.addEventListener("mousemove", event => moveAction(event));
+    window.addEventListener("mousemove", (event) => moveAction(event), { passive: false });
 
     this.render();
   }
 
+  get canvasWidth() {
+    return this.canvas.width / devicePixelRatio;
+  }
+  set canvasWidth(canvasWidth) {
+    this.canvas.width = Math.round(canvasWidth * devicePixelRatio);
+  }
+
+  get canvasHeight() {
+    return this.canvas.height / devicePixelRatio;
+  }
+  set canvasHeight(canvasHeight) {
+    this.canvas.height = Math.round(canvasHeight * devicePixelRatio);
+  }
+
   resize() {
-    this.canvas.width = this.parentEl.clientWidth;
-    this.canvas.height = this.parentEl.clientHeight;
+    this.canvasWidth = this.parentEl.clientWidth;
+    this.canvasHeight = this.parentEl.clientHeight;
+
+    this.canvas.style.width = `${this.parentEl.clientWidth}px`;
+    this.canvas.style.height = `${this.parentEl.clientHeight}px`;
+
+    this.canvas.style.transformOrigin = "top left";
+    this.ctx.scale(devicePixelRatio, devicePixelRatio);
+
     this.update();
   }
 
@@ -145,42 +188,54 @@ class TouchDistance {
   }
 
   getMatchingTouch(touches) {
-    return Array.from(touches).find(t => t.identifier === this.inputId);
+    return Array.from(touches).find((t) => t.identifier === this.inputId);
   }
 
-  get radius() { return this._radius; }
+  get radius() {
+    return this._radius;
+  }
   set radius(radius) {
     this._radius = radius;
     this.update();
   }
 
-  get rgb() { return this._rgb; }
+  get rgb() {
+    return this._rgb;
+  }
   set rgb(rgb) {
     this._rgb = rgb;
     this.update();
   }
 
-  get active() { return this.inputId !== undefined; }
+  get active() {
+    return this.inputId !== undefined;
+  }
 
-  get min() { return this._min; }
+  get min() {
+    return this._min;
+  }
   set min(min) {
     this._min = min;
     this.update();
   }
 
-  get max() { return this._max; }
+  get max() {
+    return this._max;
+  }
   set max(max) {
     this._max = max;
     this.update();
   }
 
-  getRelativePoint(normPoint) { return normPoint.mul(...this.dims); }
+  getRelativePoint(normPoint) {
+    return normPoint.mul(...this.dims);
+  }
 
-  get originCanvasPoint() { return this.getRelativePoint(this.origin); }
+  get originCanvasPoint() {
+    return this.getRelativePoint(this.origin);
+  }
   get extentCanvasPoint() {
-    return this.extent === undefined
-      ? undefined
-      : this.getRelativePoint(this.extent);
+    return this.extent === undefined ? undefined : this.getRelativePoint(this.extent);
   }
 
   getRelativeInput(input) {
@@ -217,7 +272,9 @@ class TouchDistance {
   }
 
   updateOutput() {
-    if (this.output !== undefined) { this.output.value = this.valueRender; }
+    if (this.output !== undefined) {
+      this.output.value = this.valueRender;
+    }
   }
 
   appendTo(domElement) {
@@ -228,15 +285,17 @@ class TouchDistance {
     this.output = domElement;
   }
 
-  get dims() { return [this.canvas.width, this.canvas.height]; }
+  get dims() {
+    return [this.canvasWidth, this.canvasHeight];
+  }
 
   // @action: "stroke" or "fill"
   renderArc(normPoint, radius, style, action) {
     this.ctx.save();
-    this.ctx[{stroke: "strokeStyle", fill: "fillStyle"}[action]] = style;
+    this.ctx[{ stroke: "strokeStyle", fill: "fillStyle" }[action]] = style;
     this.ctx.beginPath();
-    this.ctx.arc(...this.getRelativePoint(normPoint).asArray(), radius, 0, Math.PI * 2, false);
-    this.ctx[{stroke: "stroke", fill: "fill"}[action]]();
+    this.ctx.arc(...this.getRelativePoint(normPoint), radius, 0, Math.PI * 2, false);
+    this.ctx[{ stroke: "stroke", fill: "fill" }[action]]();
     this.ctx.restore();
   }
 
@@ -259,9 +318,11 @@ class TouchDistance {
     const fontSize = this.radius * 0.5;
     this.ctx.font = `${fontSize}px Menlo`;
     this.ctx.textAlign = "center";
-    this.ctx.fillText(this.valueRender,
-      ...this.originCanvasPoint.add(0, fontSize / 4).asArray(),
-      this.radius * 2);
+    this.ctx.fillText(
+      this.valueRender,
+      ...this.originCanvasPoint.add(0, fontSize / 4),
+      this.radius * 2,
+    );
 
     // extent
     if (this.active) {
@@ -277,8 +338,8 @@ class TouchDistance {
       // line
       this.ctx.strokeStyle = style;
       this.ctx.beginPath();
-      this.ctx.moveTo(...this.originCanvasPoint.asArray());
-      this.ctx.lineTo(...this.extentCanvasPoint.asArray());
+      this.ctx.moveTo(...this.originCanvasPoint);
+      this.ctx.lineTo(...this.extentCanvasPoint);
       this.ctx.stroke();
     }
 
@@ -287,10 +348,11 @@ class TouchDistance {
 }
 
 const container = document.createElement("div");
+container.id = "container";
 container.classList.add("touchFixedDistanceContainer");
 
 // prevent mobile scrolling
-container.addEventListener("touchmove", event => event.preventDefault());
+container.addEventListener("touchmove", (event) => event.preventDefault(), { passive: false });
 
 const dist = new TouchDistance(container, 0.5, 0.5);
 dist.min = 0;
@@ -299,7 +361,6 @@ dist.max = 100;
 const dist2 = new TouchDistance(container, 0.1, 0.9);
 dist2.radius = 50;
 dist2.rgb = [43, 212, 156];
-
 
 const dist3 = new TouchDistance(container, 0.9, 0.5);
 dist3.radius = 50;
@@ -311,13 +372,17 @@ const normRadii = [0.15, 0.075, 0.075];
 
 function resize() {
   [dist, dist2, dist3].forEach((touchDistance, i) => {
-    const minDimension = Math.min(touchDistance.parentEl.clientWidth,
-      touchDistance.parentEl.clientHeight);
+    const minDimension = Math.min(
+      touchDistance.parentEl.clientWidth,
+      touchDistance.parentEl.clientHeight,
+    );
     touchDistance.radius = minDimension * normRadii[i];
     touchDistance.resize();
   });
 }
 
-window.addEventListener("resize", resize);
-
-export { container, resize };
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.appendChild(container);
+  window.addEventListener("resize", resize);
+  resize();
+});
